@@ -16,7 +16,10 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfiguration {
 
     @Value("${rabbitmq.propostapendente.exchange}")
-    private String exchange;
+    private String exchangePropostaPendente;
+
+    @Value("${rabbitmq.propostaconcluida.exchange}")
+    private String exchangePropostaConcluida;
 
     @Bean
     public Queue criarFilaPropostaPendenteMsAnaliseCredito() {
@@ -25,7 +28,7 @@ public class RabbitMQConfiguration {
 
     @Bean
     public Queue criarFilaPropostaPendenteMsNotificacao() {
-        return QueueBuilder.durable("proposta-pendente.ms-notificação").build();
+        return QueueBuilder.durable("proposta-pendente.ms-notificacao").build();
     }
 
     @Bean
@@ -38,7 +41,6 @@ public class RabbitMQConfiguration {
         return QueueBuilder.durable("proposta-concluida.ms-notificacao").build();
     }
 
-
     @Bean
     public RabbitAdmin criarRabbitAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);
@@ -50,20 +52,37 @@ public class RabbitMQConfiguration {
     }
 
     @Bean
-    public FanoutExchange criarFanoutExchangePropostaPendente(){
-        return ExchangeBuilder.fanoutExchange(exchange).build();
+    public FanoutExchange criarFanoutExchangePropostaPendente() {
+        return ExchangeBuilder.fanoutExchange(exchangePropostaPendente).build();
     }
 
     @Bean
-    public Binding criarBidingPropostaPendneteMSAnaliseDeCredito(){
+    public FanoutExchange criarFanoutExchangePropostaConcluida() {
+        return ExchangeBuilder.fanoutExchange(exchangePropostaConcluida).build();
+    }
+
+    @Bean
+    public Binding criarBindingPropostaPendenteMSAnaliseCredito() {
         return BindingBuilder.bind(criarFilaPropostaPendenteMsAnaliseCredito()).
-        to(criarFanoutExchangePropostaPendente());
+                to(criarFanoutExchangePropostaPendente());
     }
 
     @Bean
-    public Binding criarBidingPropostaPendneteMSNotificacao(){
+    public Binding criarBindingPropostaPendenteMSNotificacao() {
         return BindingBuilder.bind(criarFilaPropostaPendenteMsNotificacao()).
                 to(criarFanoutExchangePropostaPendente());
+    }
+
+    @Bean
+    public Binding criarBindingPropostaConcluidaMSPropostaApp() {
+        return BindingBuilder.bind(criarFilaPropostaConcluidaMsProposta()).
+                to(criarFanoutExchangePropostaConcluida());
+    }
+
+    @Bean
+    public Binding criarBindingPropostaConcluidaMSNotificacao() {
+        return BindingBuilder.bind(criarFilaPropostaConcluidaMsNotificacao()).
+                to(criarFanoutExchangePropostaConcluida());
     }
 
     @Bean
